@@ -36,14 +36,18 @@ async def create_feedback(request: FeedbackRequest):
 
     # Parse JSON from the model output
     try:
-        # Strip potential markdown code fences if the model included them
         cleaned = raw.strip()
+        # Strip markdown code fences (```json ... ``` or ``` ... ```)
         if cleaned.startswith("```"):
-            cleaned = cleaned.split("\n", 1)[1]
-            cleaned = cleaned.rsplit("```", 1)[0]
+            lines = cleaned.split("\n")
+            # Remove first line (``` or ```json) and last ``` line
+            cleaned = "\n".join(
+                line for line in lines[1:]
+                if line.strip() != "```"
+            ).strip()
         feedback_data = json.loads(cleaned)
-    except (json.JSONDecodeError, IndexError):
-        raise HTTPException(status_code=500, detail="Failed to parse feedback from AI model")
+    except (json.JSONDecodeError, IndexError) as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse feedback JSON: {str(e)} | Raw: {raw[:300]}")
 
     # Get user_id from the session
     session = db.table("sessions").select("user_id").eq("id", request.session_id).limit(1).execute()

@@ -45,7 +45,7 @@ async def generate_feedback(
         model=FEEDBACK_MODEL,
         messages=messages,
         stream=False,
-        max_tokens=1024,
+        max_tokens=4096,
         temperature=0.6,
     )
 
