@@ -46,14 +46,14 @@ def update_session(session_id: str, body: SessionUpdate):
 def get_session(session_id: str):
     """Get a session with its messages."""
     db = get_supabase()
-    session = db.table("sessions").select("*").eq("id", session_id).single().execute()
+    session = db.table("sessions").select("*").eq("id", session_id).limit(1).execute()
 
     if not session.data:
         raise HTTPException(status_code=404, detail="Session not found")
 
     messages = db.table("messages").select("*").eq("session_id", session_id).order("created_at").execute()
 
-    return {**session.data, "messages": messages.data or []}
+    return {**session.data[0], "messages": messages.data or []}
 
 
 @router.get("/sessions")

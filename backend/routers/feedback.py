@@ -46,11 +46,11 @@ async def create_feedback(request: FeedbackRequest):
         raise HTTPException(status_code=500, detail="Failed to parse feedback from AI model")
 
     # Get user_id from the session
-    session = db.table("sessions").select("user_id").eq("id", request.session_id).single().execute()
+    session = db.table("sessions").select("user_id").eq("id", request.session_id).limit(1).execute()
     if not session.data:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    user_id = session.data["user_id"]
+    user_id = session.data[0]["user_id"]
 
     # Save to database
     record = db.table("feedback").insert({

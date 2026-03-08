@@ -19,7 +19,7 @@ def list_scenarios(category: str | None = None):
 def get_scenario(scenario_id: str):
     """Get a single scenario by ID."""
     db = get_supabase()
-    result = db.table("scenarios").select("*").eq("id", scenario_id).single().execute()
+    result = db.table("scenarios").select("*").eq("id", scenario_id).limit(1).execute()
     if not result.data:
         raise HTTPException(status_code=404, detail="Scenario not found")
-    return result.data
+    return result.data[0]
