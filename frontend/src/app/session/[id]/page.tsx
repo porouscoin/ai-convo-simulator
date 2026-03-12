@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { fetchSession, streamChatFetch, updateSession, generateFeedback } from "@/lib/api";
 import type { Message, Session } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export default function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [sessionId, setSessionId] = useState<string>("");
   const [session, setSession] = useState<Session | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -19,6 +20,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const selectedLanguage = searchParams.get("lang") === "roman_urdu" ? "roman_urdu" : "english";
 
   useEffect(() => {
     params.then(({ id }) => {
@@ -60,6 +62,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         difficulty: session.difficulty,
         context: session.context,
         user_goal: session.user_goal,
+        language: selectedLanguage,
       });
 
       if (!res.ok || !res.body) {
@@ -126,9 +129,10 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         (session as Session & { scenarios?: { title: string } }).scenarios?.title ?? "Conversation",
       personality_type: session.personality_type,
       user_goal: session.user_goal,
+      language: selectedLanguage,
     });
 
-    router.push(`/feedback/${sessionId}`);
+    router.push(`/feedback/${sessionId}?lang=${selectedLanguage}`);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -165,7 +169,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
           <div>
             <h1 className="font-semibold text-white text-sm">{scenarioTitle}</h1>
             <p className="text-xs text-gray-500">
-              {session.personality_type} · {session.difficulty} difficulty
+              {session.personality_type} · {session.difficulty} difficulty · {selectedLanguage === "roman_urdu" ? "Roman Urdu" : "English"}
             </p>
           </div>
         </div>

@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { fetchScenario, createSession } from "@/lib/api";
-import { PERSONALITY_TYPES, DIFFICULTY_LEVELS } from "@/lib/types";
-import type { Scenario } from "@/lib/types";
+import { PERSONALITY_TYPES, DIFFICULTY_LEVELS, CONVERSATION_LANGUAGES } from "@/lib/types";
+import type { Scenario, ConversationLanguage } from "@/lib/types";
 
 export default function ConfigurePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -18,6 +18,7 @@ export default function ConfigurePage({ params }: { params: Promise<{ id: string
 
   const [personalityType, setPersonalityType] = useState("INTJ");
   const [difficulty, setDifficulty] = useState("medium");
+  const [language, setLanguage] = useState<ConversationLanguage>("english");
   const [context, setContext] = useState("");
   const [userGoal, setUserGoal] = useState("");
 
@@ -60,7 +61,7 @@ export default function ConfigurePage({ params }: { params: Promise<{ id: string
 
     if (res.ok) {
       const session = await res.json();
-      router.push(`/session/${session.id}`);
+      router.push(`/session/${session.id}?lang=${language}`);
     } else {
       setSubmitting(false);
       alert("Failed to create session. Make sure the backend is running.");
@@ -180,6 +181,28 @@ export default function ConfigurePage({ params }: { params: Promise<{ id: string
                 >
                   <div className="font-semibold text-sm">{d.label}</div>
                   <div className="text-xs text-gray-400 mt-1">{d.description}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Language */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-300">Language</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {CONVERSATION_LANGUAGES.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setLanguage(option.value)}
+                  className={`text-left p-4 rounded-xl border transition-colors ${
+                    language === option.value
+                      ? "bg-indigo-900/50 border-indigo-500 text-white"
+                      : "bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-600"
+                  }`}
+                >
+                  <div className="font-semibold text-sm">{option.label}</div>
+                  <div className="text-xs text-gray-400 mt-1">{option.description}</div>
                 </button>
               ))}
             </div>

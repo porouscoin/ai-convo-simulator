@@ -35,8 +35,22 @@ export const DIFFICULTY_LEVELS = [
   },
 ] as const;
 
+export const CONVERSATION_LANGUAGES = [
+  {
+    value: "english",
+    label: "English",
+    description: "Default language for conversation and feedback.",
+  },
+  {
+    value: "roman_urdu",
+    label: "Roman Urdu (Test)",
+    description: "Urdu in Latin script for quick testing.",
+  },
+] as const;
+
 export type PersonalityType = typeof PERSONALITY_TYPES[number]["value"];
 export type DifficultyLevel = "easy" | "medium" | "hard";
+export type ConversationLanguage = "english" | "roman_urdu";
 
 export interface Message {
   role: "user" | "assistant";

@@ -23,6 +23,7 @@ async def chat(request: ChatRequest):
         difficulty=request.difficulty.value,
         context=request.context,
         user_goal=request.user_goal,
+        response_language=request.language.value,
     )
 
     history = [{"role": m.role, "content": m.content} for m in request.conversation_history]

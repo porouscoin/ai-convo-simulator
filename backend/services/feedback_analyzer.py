@@ -43,11 +43,21 @@ Rules:
 """
 
 
+LANGUAGE_FEEDBACK_INSTRUCTIONS: dict[str, str] = {
+  "english": "Write all feedback text in English.",
+  "roman_urdu": (
+    "Write all feedback text in Roman Urdu (Urdu in Latin letters only). "
+    "Do not use Urdu script. Keep JSON keys exactly the same."
+  ),
+}
+
+
 def build_feedback_prompt(
     scenario_title: str,
     personality_type: str,
     user_goal: str,
     conversation_history: list[dict],
+  response_language: str = "english",
 ) -> list[dict]:
     """
     Build the messages list for the feedback generation call.
@@ -55,6 +65,10 @@ def build_feedback_prompt(
     transcript = "\n".join(
         f"{'USER' if m['role'] == 'user' else 'AI PERSONA'}: {m['content']}"
         for m in conversation_history
+    )
+    language_instruction = LANGUAGE_FEEDBACK_INSTRUCTIONS.get(
+      response_language.lower(),
+      LANGUAGE_FEEDBACK_INSTRUCTIONS["english"],
     )
 
     user_message = f"""Please analyze this conversation simulation and provide feedback.
@@ -65,6 +79,9 @@ USER'S STATED GOAL: {user_goal}
 
 FULL TRANSCRIPT:
 {transcript}
+
+LANGUAGE RULE:
+{language_instruction}
 
 Provide feedback in the exact JSON format specified."""
 

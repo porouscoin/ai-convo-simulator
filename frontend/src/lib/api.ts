@@ -56,6 +56,7 @@ export function streamChat(body: {
   difficulty: string;
   context: string;
   user_goal: string;
+  language: "english" | "roman_urdu";
 }): EventSource {
   // EventSource doesn't support POST, so we use fetch with streaming directly
   // This returns a fetch response — the caller handles reading the stream
@@ -71,6 +72,7 @@ export async function streamChatFetch(body: {
   difficulty: string;
   context: string;
   user_goal: string;
+  language: "english" | "roman_urdu";
 }): Promise<Response> {
   return fetch(`${API_URL}/api/chat`, {
     method: "POST",
@@ -85,6 +87,7 @@ export async function generateFeedback(body: {
   scenario_title: string;
   personality_type: string;
   user_goal: string;
+  language: "english" | "roman_urdu";
 }): Promise<Response> {
   return fetch(`${API_URL}/api/feedback`, {
     method: "POST",

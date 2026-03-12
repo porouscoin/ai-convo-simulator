@@ -28,6 +28,11 @@ class DifficultyLevel(str, Enum):
     HARD = "hard"
 
 
+class ConversationLanguage(str, Enum):
+    ENGLISH = "english"
+    ROMAN_URDU = "roman_urdu"
+
+
 class Message(BaseModel):
     role: str  # "user" or "assistant"
     content: str
@@ -42,6 +47,7 @@ class ChatRequest(BaseModel):
     difficulty: DifficultyLevel
     context: str
     user_goal: str
+    language: ConversationLanguage = ConversationLanguage.ENGLISH
 
 
 class SessionCreate(BaseModel):
@@ -62,3 +68,4 @@ class FeedbackRequest(BaseModel):
     scenario_title: str
     personality_type: PersonalityType
     user_goal: str
+    language: ConversationLanguage = ConversationLanguage.ENGLISH

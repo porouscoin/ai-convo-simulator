@@ -222,12 +222,22 @@ DIFFICULTY_INSTRUCTIONS: dict[str, str] = {
 }
 
 
+LANGUAGE_INSTRUCTIONS: dict[str, str] = {
+    "english": "Respond in natural, fluent English.",
+    "roman_urdu": (
+        "Respond in natural Roman Urdu (Urdu written in Latin letters). "
+        "Do not use Urdu script. Keep language conversational and easy to understand."
+    ),
+}
+
+
 def build_system_prompt(
     scenario_title: str,
     personality_type: str,
     difficulty: str,
     context: str,
     user_goal: str,
+    response_language: str = "english",
 ) -> str:
     """
     Build the system prompt for the AI to roleplay as the other person
@@ -235,6 +245,7 @@ def build_system_prompt(
     """
     profile = PERSONALITY_PROFILES.get(personality_type.upper(), PERSONALITY_PROFILES["ESTJ"])
     difficulty_instruction = DIFFICULTY_INSTRUCTIONS.get(difficulty.lower(), DIFFICULTY_INSTRUCTIONS["medium"])
+    language_instruction = LANGUAGE_INSTRUCTIONS.get(response_language.lower(), LANGUAGE_INSTRUCTIONS["english"])
     traits_text = "\n".join(f"- {t}" for t in profile["traits"])
 
     return f"""You are an AI roleplaying as the other person in a conversation simulation.
@@ -256,6 +267,9 @@ YOUR SPEECH STYLE: {profile["speech_style"]}
 
 DIFFICULTY LEVEL — HOW YOU RESPOND:
 {difficulty_instruction}
+
+LANGUAGE:
+{language_instruction}
 
 CRITICAL RULES:
 - Stay completely in character throughout the entire conversation. Never break character.

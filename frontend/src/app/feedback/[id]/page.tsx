@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { fetchFeedback, fetchSession } from "@/lib/api";
 import type { FeedbackData, Session } from "@/lib/types";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 function ScoreBar({ label, value }: { label: string; value: number }) {
   const color =
@@ -25,6 +26,7 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
 }
 
 export default function FeedbackPage({ params }: { params: Promise<{ id: string }> }) {
+  const searchParams = useSearchParams();
   const [sessionId, setSessionId] = useState<string>("");
   const [feedback, setFeedback] = useState<FeedbackData | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -94,6 +96,7 @@ export default function FeedbackPage({ params }: { params: Promise<{ id: string 
 
   const scenarioTitle =
     (session as (Session & { scenarios?: { title: string } }) | null)?.scenarios?.title ?? "Conversation";
+  const selectedLanguage = searchParams.get("lang") === "roman_urdu" ? "Roman Urdu" : "English";
 
   const scoreColor =
     feedback.overall_score >= 8 ? "text-green-400"
@@ -115,7 +118,7 @@ export default function FeedbackPage({ params }: { params: Promise<{ id: string 
           <p className="text-sm text-indigo-400 font-medium uppercase tracking-wider">Session Feedback</p>
           <h1 className="text-2xl font-bold text-white">{scenarioTitle}</h1>
           {session && (
-            <p className="text-gray-400 text-sm">{session.personality_type} · {session.difficulty} difficulty</p>
+            <p className="text-gray-400 text-sm">{session.personality_type} · {session.difficulty} difficulty · {selectedLanguage}</p>
           )}
         </div>
 

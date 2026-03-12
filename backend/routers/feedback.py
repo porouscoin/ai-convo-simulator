@@ -27,6 +27,7 @@ async def create_feedback(request: FeedbackRequest):
         personality_type=request.personality_type.value,
         user_goal=request.user_goal,
         conversation_history=history,
+        response_language=request.language.value,
     )
 
     raw = await generate_feedback(
