@@ -23,7 +23,7 @@ A full-stack web app for practicing high-stakes conversations with realistic AI 
 | Frontend | Next.js 15 (App Router, TypeScript, Tailwind CSS) |
 | Backend | FastAPI (Python), Server-Sent Events for streaming |
 | AI | Groq API — `llama-3.3-70b-versatile` |
-| Database & Auth | Supabase (PostgreSQL + Row Level Security + Magic Link auth) |
+| Database & Auth | Supabase (PostgreSQL + Row Level Security + email/password auth) |
 | Deployment | Vercel (frontend) · Railway (backend) |
 
 ---
@@ -103,7 +103,7 @@ Run `supabase/migrations/001_initial_schema.sql` in your Supabase SQL Editor. Th
 - **Structured feedback** — overall score, 4 skill scores (clarity, persuasion, emotional control, adaptability), strengths, weaknesses, key moments, and suggested better responses
 - **Multi-language** — English and Roman Urdu supported for both conversation and feedback
 - **Session history** — dashboard showing all past sessions with scores
-- **Magic link auth** — passwordless login via Supabase
+- **Email/password auth** — sign up, sign in, and password reset via Supabase
 
 ---
 
