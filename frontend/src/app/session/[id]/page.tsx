@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { fetchSession, streamChatFetch, updateSession, generateFeedback } from "@/lib/api";
 import type { Message, Session } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export default function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [sessionId, setSessionId] = useState<string>("");
   const [session, setSession] = useState<Session | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -20,7 +19,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const selectedLanguage = searchParams.get("lang") === "roman_urdu" ? "roman_urdu" : "english";
+  const selectedLanguage = session?.language ?? "english";
 
   useEffect(() => {
     params.then(({ id }) => {
@@ -132,7 +131,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
       language: selectedLanguage,
     });
 
-    router.push(`/feedback/${sessionId}?lang=${selectedLanguage}`);
+    router.push(`/feedback/${sessionId}?lang=${session?.language ?? "english"}`);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {

@@ -16,6 +16,7 @@ export async function createSession(
     scenario_id: string;
     personality_type: string;
     difficulty: string;
+    language: string;
     context: string;
     user_goal: string;
   },

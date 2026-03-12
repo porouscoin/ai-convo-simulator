@@ -15,6 +15,7 @@ def create_session(body: SessionCreate, user_id: str):
         "scenario_id": body.scenario_id,
         "personality_type": body.personality_type.value,
         "difficulty": body.difficulty.value,
+        "language": body.language.value,
         "context": body.context,
         "user_goal": body.user_goal,
         "status": "active",

@@ -53,6 +53,7 @@ export default function ConfigurePage({ params }: { params: Promise<{ id: string
         scenario_id: scenarioId,
         personality_type: personalityType,
         difficulty,
+        language,
         context,
         user_goal: userGoal,
       },
@@ -61,7 +62,7 @@ export default function ConfigurePage({ params }: { params: Promise<{ id: string
 
     if (res.ok) {
       const session = await res.json();
-      router.push(`/session/${session.id}?lang=${language}`);
+      router.push(`/session/${session.id}`);
     } else {
       setSubmitting(false);
       alert("Failed to create session. Make sure the backend is running.");

@@ -54,6 +54,7 @@ class SessionCreate(BaseModel):
     scenario_id: str
     personality_type: PersonalityType
     difficulty: DifficultyLevel
+    language: ConversationLanguage = ConversationLanguage.ENGLISH
     context: str
     user_goal: str
 

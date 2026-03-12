@@ -43,8 +43,8 @@ export const CONVERSATION_LANGUAGES = [
   },
   {
     value: "roman_urdu",
-    label: "Roman Urdu (Test)",
-    description: "Urdu in Latin script for quick testing.",
+    label: "Roman Urdu",
+    description: "Urdu written in Latin script (Roman Urdu).",
   },
 ] as const;
 
@@ -72,6 +72,7 @@ export interface Session {
   scenario_id: string;
   personality_type: PersonalityType;
   difficulty: DifficultyLevel;
+  language: ConversationLanguage;
   context: string;
   user_goal: string;
   status: "active" | "completed" | "abandoned";
