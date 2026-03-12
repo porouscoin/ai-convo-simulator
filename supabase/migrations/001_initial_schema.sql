@@ -35,6 +35,7 @@ create table public.sessions (
   scenario_id uuid not null references public.scenarios(id) on delete restrict,
   personality_type text not null,   -- MBTI code e.g. 'INTJ'
   difficulty text not null,         -- 'easy' | 'medium' | 'hard'
+  language text not null default 'english',  -- 'english' | 'roman_urdu'
   context text not null,            -- user-provided context
   user_goal text not null,          -- what the user wants to achieve
   status text not null default 'active',  -- 'active' | 'completed' | 'abandoned'
