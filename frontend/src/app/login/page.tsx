@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 type AuthMode = "sign-in" | "sign-up" | "forgot-password";
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const [mode, setMode] = useState<AuthMode>("sign-in");
   const [email, setEmail] = useState("");
@@ -18,9 +17,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [queryMessage, setQueryMessage] = useState<string | null>(null);
+  const [queryError, setQueryError] = useState<string | null>(null);
 
-  const queryMessage = searchParams.get("message");
-  const queryError = searchParams.get("error");
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setQueryMessage(params.get("message"));
+    setQueryError(params.get("error"));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
