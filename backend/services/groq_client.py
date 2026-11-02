@@ -4,8 +4,14 @@ from typing import AsyncGenerator
 
 client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY"))
 
-CHAT_MODEL = "llama-3.3-70b-versatile"
-FEEDBACK_MODEL = "llama-3.3-70b-versatile"
+# Groq retires models over time, so the model is set per deployment.
+CHAT_MODEL = os.getenv("GROQ_CHAT_MODEL", "openai/gpt-oss-120b")
+FEEDBACK_MODEL = os.getenv("GROQ_FEEDBACK_MODEL", CHAT_MODEL)
+
+
+def _extra(model: str) -> dict:
+    # GPT-OSS models reason before answering; keep it short so replies stay fast.
+    return {"reasoning_effort": "low"} if model.startswith("openai/gpt-oss") else {}
 
 
 async def stream_chat_response(
@@ -22,8 +28,9 @@ async def stream_chat_response(
         model=CHAT_MODEL,
         messages=messages,
         stream=True,
-        max_tokens=512,
+        max_tokens=1024,  # reasoning models spend part of this before replying
         temperature=0.85,
+        **_extra(CHAT_MODEL),
     )
 
     async for chunk in stream:
@@ -47,6 +54,7 @@ async def generate_feedback(
         stream=False,
         max_tokens=4096,
         temperature=0.6,
+        **_extra(FEEDBACK_MODEL),
     )
 
     return response.choices[0].message.content
