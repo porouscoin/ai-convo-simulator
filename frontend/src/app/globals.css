@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
-/* One dark theme: warm neutrals, a single amber accent, no gradients. */
+/* One dark theme: blue-black neutrals, a single soft blue accent, no gradients. */
 @theme {
-  --color-bg: #0f0f0e;
-  --color-surface: #171716;
-  --color-raised: #201f1d;
-  --color-line: #2a2926;
-  --color-line-strong: #3b3a36;
-  --color-ink: #f2f1ed;
-  --color-ink-2: #b6b4ac;
-  --color-ink-3: #85837b;
-  --color-accent: #e3a240;
-  --color-good: #86b98b;
-  --color-warn: #e3a240;
-  --color-bad: #e3806f;
+  --color-bg: #0a0e16;
+  --color-surface: #0f1520;
+  --color-raised: #161e2c;
+  --color-line: #1d2636;
+  --color-line-strong: #2a3547;
+  --color-ink: #e9eef6;
+  --color-ink-2: #a6b1c3;
+  --color-ink-3: #6f7c91;
+  --color-accent: #7aa7ff;
+  --color-good: #7cc49a;
+  --color-warn: #e5b25c;
+  --color-bad: #ec8b7e;
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
@@ -34,7 +34,7 @@ body {
 }
 
 ::selection {
-  background: #e3a24055;
+  background: #7aa7ff44;
 }
 
 :focus-visible {

@@ -26,7 +26,7 @@ export function Logo({ href = "/" }: { href?: string }) {
         <rect width="26" height="26" rx="7" fill="var(--color-accent)" />
         <path
           d="M7 8.5h12M7 13h8M7 17.5h10"
-          stroke="#0f0f0e"
+          stroke="#0a0e16"
           strokeWidth="2.2"
           strokeLinecap="round"
         />
