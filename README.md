@@ -1,113 +1,116 @@
-# ConvoSim — AI Conversation Simulator
+<div align="center">
 
-A full-stack web app for practicing high-stakes conversations with realistic AI personas. Think of it as a flight simulator for real-life conversations — salary negotiations, job interviews, conflict resolution, sales pitches, and more.
+# ConvoSim
 
-**Live demo:** [ai-convo-simulator.vercel.app](https://ai-convo-simulator.vercel.app)
+**Rehearse the hard conversation before you have it.**
+An AI plays the other person, pushes back the way they would, and then tells you how you did.
 
----
+[**Try it live**](https://ai-convo-simulator.vercel.app) · [How a session works](#how-a-session-works) · [Run it locally](#run-it-locally)
 
-## What it does
+![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white)
+![Groq](https://img.shields.io/badge/Groq-F55036)
 
-- Choose a scenario (salary negotiation, job interview, difficult coworker, etc.)
-- Configure the other person's personality (all 16 MBTI types) and difficulty level
-- Have a live conversation with a streaming AI persona that stays in character
-- Get detailed structured feedback on your performance after each session: scores, strengths, weaknesses, key moments, suggested better responses, and personality-specific coaching
-- Supports English and Roman Urdu
+<img src="docs/landing.png" alt="ConvoSim landing page with a sample salary negotiation and its feedback score" width="900">
 
----
+</div>
+
+## What it is
+
+A flight simulator for real-life conversations: salary negotiations, job interviews, sales calls, angry customers and difficult coworkers.
+
+- **Pick a situation** from the starter scenarios and add your own context and goal.
+- **Choose who you face**: any of the 16 MBTI personalities, at easy, medium or hard difficulty.
+- **Talk it through** with an AI that stays in character and streams its replies as it types.
+- **Get feedback**: an overall score, four skill scores, what worked, what to work on, key moments, and better lines to try next time.
+- Works in **English and Roman Urdu**, for both the conversation and the feedback.
+
+<img src="docs/chat.png" alt="A salary negotiation in progress against a hard INTJ manager" width="900">
+
+## How a session works
+
+```mermaid
+flowchart LR
+    A[Pick a scenario] --> B[Choose personality,<br/>difficulty and language]
+    B --> C[Chat with the AI persona<br/>streamed live]
+    C --> D[End the session]
+    D --> E[Feedback: score, skills,<br/>key moments, better responses]
+    E --> F[(Saved to your dashboard)]
+```
+
+The persona prompt is built from the scenario, your goal and the chosen personality's traits, resistance patterns and speech style. When you end the session, a second call reads the full transcript and returns structured feedback scored on **clarity, persuasion, emotional control and adaptability**.
 
 ## Tech stack
 
 | Layer | Technology |
-|---|---|
-| Frontend | Next.js 15 (App Router, TypeScript, Tailwind CSS) |
+| --- | --- |
+| Frontend | Next.js (App Router), TypeScript, Tailwind CSS |
 | Backend | FastAPI (Python), Server-Sent Events for streaming |
-| AI | Groq API — `llama-3.3-70b-versatile` |
-| Database & Auth | Supabase (PostgreSQL + Row Level Security + email/password auth) |
-| Deployment | Vercel (frontend) · Railway (backend) |
-
----
+| AI | Groq, `openai/gpt-oss-120b` by default (set with `GROQ_CHAT_MODEL`) |
+| Database and auth | Supabase: PostgreSQL with Row Level Security, email and password sign-in |
+| Hosting | Vercel (frontend), Render (backend) |
 
 ## Project structure
 
 ```
-├── frontend/          # Next.js 15 app
-│   └── src/
-│       ├── app/       # Pages: landing, login, dashboard, scenarios, session, feedback
-│       └── lib/       # API client, Supabase client, shared types
-├── backend/           # FastAPI app
-│   ├── routers/       # chat, sessions, scenarios, feedback endpoints
-│   └── services/      # Groq client, MBTI personality prompts, feedback analyzer
-└── supabase/
-    └── migrations/    # DB schema + seed scenarios
+frontend/src/
+  app/          pages: landing, login, dashboard, scenarios, session, feedback
+  components/   shared UI
+  lib/          API client, Supabase client, shared types
+backend/
+  routers/      chat, sessions, scenarios, feedback endpoints
+  services/     Groq client, personality prompts, feedback analyzer
+supabase/
+  migrations/   database schema and starter scenarios
 ```
 
----
+## Run it locally
 
-## Running locally
+You need Node.js 18+, Python 3.11+, a Supabase project and a free Groq API key.
 
-### Prerequisites
-- Node.js 18+
-- Python 3.11+
-- Supabase project
-- Groq API key
+**1. Database.** Run the files in `supabase/migrations/` in order in the Supabase SQL editor. This creates the tables, the security policies and the starter scenarios.
 
-### Backend
+**2. Backend**
 
 ```bash
 cd backend
 python -m venv .venv
-.\.venv\Scripts\activate   # Windows
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env       # fill in your keys
+cp .env.example .env             # add GROQ_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
 uvicorn main:app --reload
 ```
 
-### Frontend
+**3. Frontend**
 
 ```bash
 cd frontend
 npm install
-cp .env.local.example .env.local   # fill in your keys
 npm run dev
 ```
 
-### Environment variables
+Before `npm run dev`, create `frontend/.env.local` with:
 
-**Backend `.env`:**
-```
-GROQ_API_KEY=
-SUPABASE_URL=
-SUPABASE_SERVICE_ROLE_KEY=
-ALLOWED_ORIGINS=http://localhost:3000
-```
-
-**Frontend `.env.local`:**
 ```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-### Database
+Then open http://localhost:3000.
 
-Run `supabase/migrations/001_initial_schema.sql` in your Supabase SQL Editor. This creates the tables, RLS policies, and seeds 6 starter scenarios.
+## Deploy
 
----
-
-## Features
-
-- **16 MBTI personalities** — each with distinct behavioral traits, resistance patterns, and speech styles
-- **3 difficulty levels** — Easy, Medium, Hard (controls how hard the AI pushes back)
-- **Streaming responses** — AI replies token-by-token via SSE for a real conversation feel
-- **Structured feedback** — overall score, 4 skill scores (clarity, persuasion, emotional control, adaptability), strengths, weaknesses, key moments, and suggested better responses
-- **Multi-language** — English and Roman Urdu supported for both conversation and feedback
-- **Session history** — dashboard showing all past sessions with scores
-- **Email/password auth** — sign up, sign in, and password reset via Supabase
+- **Frontend:** Vercel, with the root directory set to `frontend/` and the three variables above.
+- **Backend:** Render, using the included `render.yaml`. Set `ALLOWED_ORIGINS` to your Vercel URL.
 
 ---
 
-## Deployment
+<div align="center">
 
-- **Frontend** → Vercel. Set root directory to `frontend/`, add env vars.
-- **Backend** → Railway. Auto-detects Python via nixpacks. Set `ALLOWED_ORIGINS` to your Vercel URL.
+Built by [Ziyad Hisham](https://ziyadhisham.com)
+
+</div>
