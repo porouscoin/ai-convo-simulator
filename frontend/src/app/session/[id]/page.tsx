@@ -4,7 +4,23 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { fetchSession, streamChatFetch, updateSession, generateFeedback } from "@/lib/api";
 import type { Message, Session } from "@/lib/types";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { ArrowLeft, ArrowUp } from "lucide-react";
+import { CenterNote, Spinner, btn, DIFFICULTY_LABEL, LANGUAGE_LABEL } from "@/components/ui";
+
+function Them({ code, children }: { code: string; children: React.ReactNode }) {
+  return (
+    <div className="flex gap-3.5">
+      <span className="mt-0.5 flex h-8 w-12 shrink-0 items-center justify-center rounded-md border border-line-strong font-mono text-[11px] font-medium text-ink-2">
+        {code}
+      </span>
+      <div className="min-w-0 max-w-[85%] whitespace-pre-wrap pt-0.5 text-[16px] leading-relaxed text-ink">
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export default function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -104,7 +120,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         ...prev,
         {
           role: "assistant",
-          content: "⚠️ Connection error. Make sure the backend is running.",
+          content: "Connection lost before a reply came back. Send your message again in a moment.",
         },
       ]);
       setStreamingContent("");
@@ -143,134 +159,146 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
 
   if (loadingSession) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-gray-400">Loading session...</div>
-      </div>
+      <CenterNote>
+        <Spinner />
+        <p>Loading session...</p>
+      </CenterNote>
     );
   }
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-red-400">Session not found.</div>
-      </div>
+      <CenterNote>
+        <p className="text-bad">This session couldn&apos;t be found.</p>
+        <Link href="/dashboard" className={btn.secondary}>
+          Back to dashboard
+        </Link>
+      </CenterNote>
     );
   }
 
   const scenarioTitle =
     (session as Session & { scenarios?: { title: string } }).scenarios?.title ?? "Conversation";
+  const ended = session.status !== "active";
+  const canEnd = !ending && messages.length >= 2;
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
-      {/* Header */}
-      <header className="border-b border-gray-800 px-6 py-3 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div>
-            <h1 className="font-semibold text-white text-sm">{scenarioTitle}</h1>
-            <p className="text-xs text-gray-500">
-              {session.personality_type} · {session.difficulty} difficulty · {selectedLanguage === "roman_urdu" ? "Roman Urdu" : "English"}
-            </p>
+    <div className="flex h-dvh flex-col">
+      <header className="shrink-0 border-b border-line bg-bg">
+        <div className="mx-auto flex h-16 max-w-3xl items-center justify-between gap-4 px-4 sm:px-6">
+          <div className="flex min-w-0 items-center gap-3">
+            <Link
+              href="/dashboard"
+              aria-label="Back to dashboard"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-ink-3 hover:bg-raised hover:text-ink"
+            >
+              <ArrowLeft size={18} />
+            </Link>
+            <div className="min-w-0">
+              <h1 className="truncate text-[16px] font-medium leading-tight">{scenarioTitle}</h1>
+              <p className="truncate text-sm text-ink-3">
+                {session.personality_type} · {DIFFICULTY_LABEL[session.difficulty] ?? session.difficulty} ·{" "}
+                {LANGUAGE_LABEL[selectedLanguage]}
+              </p>
+            </div>
           </div>
+          <button
+            onClick={endSession}
+            disabled={!canEnd}
+            title={messages.length < 2 ? "Have at least one exchange first" : undefined}
+            className={cn(btn.secondary, btn.small, "shrink-0")}
+          >
+            {ending ? "Ending..." : (
+              <>
+                <span className="hidden sm:inline">End and get feedback</span>
+                <span className="sm:hidden">End</span>
+              </>
+            )}
+          </button>
         </div>
-        <button
-          onClick={endSession}
-          disabled={ending || messages.length < 2}
-          className="text-sm px-4 py-2 bg-gray-800 hover:bg-red-900/50 hover:text-red-400 disabled:opacity-40 disabled:cursor-not-allowed text-gray-300 rounded-lg transition-colors"
-        >
-          {ending ? "Ending..." : "End & Get Feedback"}
-        </button>
       </header>
 
-      {/* Context banner */}
-      <div className="bg-gray-900/50 border-b border-gray-800/50 px-6 py-2">
-        <p className="text-xs text-gray-500 max-w-3xl mx-auto">
-          <span className="text-gray-400 font-medium">Your goal:</span> {session.user_goal}
+      <div className="shrink-0 border-b border-line bg-surface">
+        <p className="mx-auto max-w-3xl px-4 py-2.5 text-sm text-ink-2 sm:px-6">
+          <span className="text-ink-3">Your goal: </span>
+          {session.user_goal}
         </p>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 max-w-3xl mx-auto w-full">
-        {messages.length === 0 && !streaming && (
-          <div className="text-center text-gray-500 py-16">
-            <p className="text-sm">The AI persona is ready. Send your first message to begin.</p>
-          </div>
-        )}
-
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={cn(
-              "flex",
-              msg.role === "user" ? "justify-end" : "justify-start"
-            )}
-          >
-            <div
-              className={cn(
-                "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
-                msg.role === "user"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-gray-800 text-gray-100"
-              )}
-            >
-              {msg.content}
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6">
+          {messages.length === 0 && !streaming && (
+            <div className="py-16 text-center">
+              <p className="text-lg font-medium">You start.</p>
+              <p className="mx-auto mt-1.5 max-w-sm text-[15px] text-ink-2">
+                The {session.personality_type} on the other side is ready. Open the conversation the way
+                you would in real life.
+              </p>
             </div>
-          </div>
-        ))}
+          )}
 
-        {/* Streaming AI response */}
-        {streamingContent && (
-          <div className="flex justify-start">
-            <div className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed bg-gray-800 text-gray-100">
-              {streamingContent}
-              <span className="inline-block w-1.5 h-3.5 bg-gray-400 ml-0.5 animate-pulse rounded-sm" />
-            </div>
-          </div>
-        )}
-
-        {streaming && !streamingContent && (
-          <div className="flex justify-start">
-            <div className="bg-gray-800 rounded-2xl px-4 py-3">
-              <div className="flex gap-1.5 items-center h-4">
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
+          {messages.map((msg, i) =>
+            msg.role === "user" ? (
+              <div key={i} className="flex justify-end">
+                <div className="max-w-[85%] whitespace-pre-wrap rounded-xl rounded-br-sm bg-raised px-4 py-3 text-[16px] leading-relaxed">
+                  {msg.content}
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            ) : (
+              <Them key={i} code={session.personality_type}>{msg.content}</Them>
+            ),
+          )}
 
-        <div ref={bottomRef} />
+          {streamingContent && (
+            <Them code={session.personality_type}>
+              {streamingContent}
+              <span className="ml-0.5 inline-block h-4 w-1.5 translate-y-0.5 animate-pulse rounded-sm bg-ink-3" />
+            </Them>
+          )}
+
+          {streaming && !streamingContent && (
+            <Them code={session.personality_type}>
+              <span className="flex h-6 items-center gap-1.5">
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-3 [animation-delay:0ms]" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-3 [animation-delay:150ms]" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-3 [animation-delay:300ms]" />
+              </span>
+            </Them>
+          )}
+
+          <div ref={bottomRef} />
+        </div>
       </div>
 
-      {/* Input */}
-      <div className="border-t border-gray-800 px-4 py-4 flex-shrink-0">
+      <div className="shrink-0 border-t border-line bg-bg px-4 pb-4 pt-3 sm:px-6">
         <form
           onSubmit={sendMessage}
-          className="max-w-3xl mx-auto flex items-end gap-3"
+          className="mx-auto flex max-w-3xl items-end gap-2 rounded-xl border border-line bg-surface p-2 transition-colors focus-within:border-line-strong"
         >
           <textarea
             ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            disabled={streaming || session.status !== "active"}
-            placeholder={
-              session.status !== "active"
-                ? "Session has ended."
-                : "Type your message... (Enter to send, Shift+Enter for newline)"
-            }
+            disabled={streaming || ended}
+            placeholder={ended ? "This session has ended." : "Type your reply"}
             rows={1}
-            className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none max-h-32 overflow-y-auto"
+            aria-label="Your message"
+            className="max-h-40 flex-1 resize-none overflow-y-auto bg-transparent px-2.5 py-2 text-[16px] text-ink placeholder:text-ink-3 focus:outline-none disabled:opacity-60"
             style={{ fieldSizing: "content" } as React.CSSProperties}
           />
           <button
             type="submit"
-            disabled={!input.trim() || streaming || session.status !== "active"}
-            className="px-4 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition-colors flex-shrink-0"
+            aria-label="Send"
+            disabled={!input.trim() || streaming || ended}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ink text-bg transition-colors hover:bg-white disabled:opacity-30"
           >
-            Send
+            <ArrowUp size={18} />
           </button>
         </form>
+        <p className="mx-auto mt-2 hidden max-w-3xl px-1 text-xs text-ink-3 sm:block">
+          Enter to send, Shift + Enter for a new line.
+        </p>
       </div>
     </div>
   );

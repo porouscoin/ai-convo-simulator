@@ -1,6 +1,8 @@
 import { fetchScenarios } from "@/lib/api";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import type { Scenario } from "@/lib/types";
+import { TopBar, NavLink, SignOut, Eyebrow } from "@/components/ui";
 
 const CATEGORY_LABELS: Record<string, string> = {
   career: "Career",
@@ -24,73 +26,54 @@ export default async function ScenariosPage() {
   }, {});
 
   return (
-    <div className="min-h-screen bg-gray-950">
-      <nav className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-        <Link href="/dashboard" className="font-bold text-white text-lg">
-          ConvoSim
-        </Link>
-        <Link href="/dashboard" className="text-sm text-gray-400 hover:text-white transition-colors">
-          ← Dashboard
-        </Link>
-      </nav>
+    <div className="min-h-dvh">
+      <TopBar home="/dashboard" width="max-w-5xl">
+        <NavLink href="/dashboard">Dashboard</NavLink>
+        <SignOut />
+      </TopBar>
 
-      <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Choose a Scenario</h1>
-          <p className="text-gray-400 mt-1">
-            Select the conversation you want to practice.
-          </p>
-        </div>
+      <main className="mx-auto max-w-5xl px-5 py-10 sm:px-8 sm:py-14">
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Choose a scenario</h1>
+        <p className="mt-2 text-[17px] text-ink-2">
+          You&apos;ll set the context, your goal and the other person&apos;s personality next.
+        </p>
 
         {scenarios.length === 0 ? (
-          <div className="bg-red-900/20 border border-red-800 rounded-2xl p-8 text-center">
-            <p className="text-red-400">
-              Could not load scenarios. Make sure the backend is running and your database is seeded.
-            </p>
-          </div>
+          <p className="mt-10 rounded-xl border border-bad/40 px-6 py-5 text-[15px] text-bad">
+            Scenarios couldn&apos;t be loaded. The server may be waking up, so try again in a
+            minute.
+          </p>
         ) : (
-          Object.entries(byCategory).map(([category, items]) => (
-            <div key={category} className="space-y-4">
-              <h2 className="text-sm font-semibold text-indigo-400 uppercase tracking-wider">
-                {CATEGORY_LABELS[category] ?? category}
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {items.map((scenario) => (
-                  <Link
-                    key={scenario.id}
-                    href={`/scenarios/${scenario.id}/configure`}
-                    className="bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-indigo-700 rounded-2xl p-6 block transition-colors group"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="space-y-2">
-                        <h3 className="font-semibold text-white group-hover:text-indigo-300 transition-colors">
-                          {scenario.title}
-                        </h3>
-                        <p className="text-sm text-gray-400">{scenario.description}</p>
-                        {scenario.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mt-3">
-                            {scenario.tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className="text-xs px-2 py-0.5 bg-gray-800 text-gray-400 rounded-full"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
+          <div className="mt-10 space-y-12">
+            {Object.entries(byCategory).map(([category, items]) => (
+              <section key={category}>
+                <Eyebrow>{CATEGORY_LABELS[category] ?? category}</Eyebrow>
+                <div className="mt-4 divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
+                  {items.map((s) => (
+                    <Link
+                      key={s.id}
+                      href={`/scenarios/${s.id}/configure`}
+                      className="group flex items-center justify-between gap-6 px-5 py-5 transition-colors hover:bg-raised sm:px-6"
+                    >
+                      <div className="min-w-0">
+                        <h2 className="text-lg font-medium">{s.title}</h2>
+                        <p className="mt-1 text-[15px] leading-relaxed text-ink-2">{s.description}</p>
+                        {s.tags.length > 0 && (
+                          <p className="mt-2 text-sm text-ink-3">{s.tags.join(" · ")}</p>
                         )}
                       </div>
-                      <span className="text-gray-600 group-hover:text-indigo-400 transition-colors mt-1 flex-shrink-0">
-                        →
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))
+                      <ArrowRight
+                        size={20}
+                        className="shrink-0 text-ink-3 transition-transform group-hover:translate-x-0.5 group-hover:text-ink"
+                      />
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

@@ -4,23 +4,55 @@ import { useState, useEffect, useCallback } from "react";
 import { fetchFeedback, fetchSession } from "@/lib/api";
 import type { FeedbackData, Session } from "@/lib/types";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+import {
+  TopBar,
+  NavLink,
+  Panel,
+  Eyebrow,
+  CenterNote,
+  Spinner,
+  btn,
+  scoreTone,
+  toneText,
+  toneBg,
+  DIFFICULTY_LABEL,
+  LANGUAGE_LABEL,
+} from "@/components/ui";
 
 function ScoreBar({ label, value }: { label: string; value: number }) {
-  const color =
-    value >= 8 ? "bg-green-500" : value >= 6 ? "bg-indigo-500" : value >= 4 ? "bg-yellow-500" : "bg-red-500";
+  const tone = scoreTone(value);
   return (
-    <div className="space-y-1.5">
-      <div className="flex justify-between text-sm">
-        <span className="text-gray-300">{label}</span>
-        <span className="text-white font-semibold">{value}/10</span>
+    <div>
+      <div className="flex items-baseline justify-between text-[15px]">
+        <span className="text-ink-2">{label}</span>
+        <span className="font-medium tabular-nums">{value}<span className="text-ink-3"> / 10</span></span>
       </div>
-      <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-raised">
         <div
-          className={`h-full rounded-full transition-all duration-700 ${color}`}
-          style={{ width: `${value * 10}%` }}
+          className={`h-full rounded-full transition-all duration-700 ${toneBg[tone]}`}
+          style={{ width: `${Math.max(0, Math.min(10, value)) * 10}%` }}
         />
       </div>
     </div>
+  );
+}
+
+function List({ title, dot, items }: { title: string; dot: string; items: string[] }) {
+  return (
+    <Panel className="p-6">
+      <h2 className="flex items-center gap-2.5 text-lg font-semibold">
+        <span className={`h-2 w-2 rounded-full ${dot}`} aria-hidden />
+        {title}
+      </h2>
+      <ul className="mt-4 space-y-3">
+        {items.map((s, i) => (
+          <li key={i} className="border-t border-line pt-3 text-[15px] leading-relaxed text-ink-2 first:border-0 first:pt-0">
+            {s}
+          </li>
+        ))}
+      </ul>
+    </Panel>
   );
 }
 
@@ -70,151 +102,150 @@ export default function FeedbackPage({ params }: { params: Promise<{ id: string 
 
   if (generating) {
     return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center gap-4">
-        <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-gray-400">Analyzing your conversation...</p>
-        <p className="text-gray-600 text-sm">This takes about 10–15 seconds</p>
-      </div>
+      <CenterNote>
+        <Spinner />
+        <p className="text-lg text-ink">Reading your conversation...</p>
+        <p className="text-[15px] text-ink-3">This usually takes 10 to 15 seconds.</p>
+      </CenterNote>
     );
   }
 
   if (error || !feedback) {
     return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center gap-4">
-        <p className="text-red-400">Failed to load feedback.</p>
+      <CenterNote>
+        <p className="text-bad">The feedback couldn&apos;t be loaded.</p>
         <button
-          onClick={() => { setError(false); setGenerating(true); poll(sessionId); }}
-          className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-sm"
+          onClick={() => {
+            setError(false);
+            setGenerating(true);
+            poll(sessionId);
+          }}
+          className={btn.secondary}
         >
-          Retry
+          Try again
         </button>
-      </div>
+      </CenterNote>
     );
   }
 
   const scenarioTitle =
     (session as (Session & { scenarios?: { title: string } }) | null)?.scenarios?.title ?? "Conversation";
-  const selectedLanguage = session?.language === "roman_urdu" ? "Roman Urdu" : "English";
-
-  const scoreColor =
-    feedback.overall_score >= 8 ? "text-green-400"
-    : feedback.overall_score >= 6 ? "text-indigo-400"
-    : feedback.overall_score >= 4 ? "text-yellow-400"
-    : "text-red-400";
+  const tone = scoreTone(feedback.overall_score);
+  const verdict =
+    feedback.overall_score >= 8
+      ? "Strong conversation."
+      : feedback.overall_score >= 5
+        ? "Solid, with room to improve."
+        : "Worth another try.";
 
   return (
-    <div className="min-h-screen bg-gray-950">
-      <nav className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-        <span className="font-bold text-white text-lg">ConvoSim</span>
-        <Link href="/scenarios" className="text-sm px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-colors">
-          Practice Again
+    <div className="min-h-dvh">
+      <TopBar home="/dashboard" width="max-w-5xl">
+        <NavLink href="/dashboard">Dashboard</NavLink>
+        <Link href="/scenarios" className={cn(btn.primary, btn.small, "ml-1")}>
+          Practice again
         </Link>
-      </nav>
+      </TopBar>
 
-      <div className="max-w-3xl mx-auto px-6 py-10 space-y-8">
-        <div className="space-y-1">
-          <p className="text-sm text-indigo-400 font-medium uppercase tracking-wider">Session Feedback</p>
-          <h1 className="text-2xl font-bold text-white">{scenarioTitle}</h1>
+      <main className="mx-auto max-w-5xl space-y-6 px-5 py-10 sm:px-8 sm:py-14">
+        <div className="pb-4">
+          <Eyebrow>Session feedback</Eyebrow>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{scenarioTitle}</h1>
           {session && (
-            <p className="text-gray-400 text-sm">{session.personality_type} · {session.difficulty} difficulty · {selectedLanguage}</p>
+            <p className="mt-2 text-[17px] text-ink-2">
+              {session.personality_type} · {DIFFICULTY_LABEL[session.difficulty] ?? session.difficulty} ·{" "}
+              {LANGUAGE_LABEL[session.language] ?? "English"}
+            </p>
           )}
         </div>
 
-        <div className="bg-gray-900 rounded-2xl border border-gray-800 p-8 text-center space-y-2">
-          <p className="text-sm text-gray-400 uppercase tracking-wider font-medium">Overall Score</p>
-          <p className={`text-7xl font-bold ${scoreColor}`}>{feedback.overall_score}</p>
-          <p className="text-gray-500 text-sm">out of 10</p>
+        <div className="grid gap-6 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+          <Panel className="flex flex-col justify-between p-6">
+            <p className="text-[15px] text-ink-3">Overall score</p>
+            <p className="mt-4 text-7xl font-semibold tracking-tight tabular-nums">
+              <span className={toneText[tone]}>{feedback.overall_score}</span>
+              <span className="text-2xl font-normal text-ink-3"> / 10</span>
+            </p>
+            <p className="mt-4 text-[17px] text-ink-2">{verdict}</p>
+          </Panel>
+          {feedback.scores && (
+            <Panel className="space-y-5 p-6">
+              <h2 className="text-lg font-semibold">Skill breakdown</h2>
+              <ScoreBar label="Clarity" value={feedback.scores.clarity} />
+              <ScoreBar label="Persuasion" value={feedback.scores.persuasion} />
+              <ScoreBar label="Emotional control" value={feedback.scores.emotional_control} />
+              <ScoreBar label="Adaptability" value={feedback.scores.adaptability} />
+            </Panel>
+          )}
         </div>
 
-        {feedback.scores && (
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 space-y-4">
-            <h2 className="font-semibold text-white">Skill Breakdown</h2>
-            <ScoreBar label="Clarity" value={feedback.scores.clarity} />
-            <ScoreBar label="Persuasion" value={feedback.scores.persuasion} />
-            <ScoreBar label="Emotional Control" value={feedback.scores.emotional_control} />
-            <ScoreBar label="Adaptability" value={feedback.scores.adaptability} />
-          </div>
-        )}
+        <Panel className="p-6 sm:p-8">
+          <h2 className="text-lg font-semibold">Analysis</h2>
+          <p className="mt-3 max-w-3xl whitespace-pre-line text-[16px] leading-[1.75] text-ink-2">
+            {feedback.full_analysis}
+          </p>
+        </Panel>
 
-        <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 space-y-3">
-          <h2 className="font-semibold text-white">Analysis</h2>
-          <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-line">{feedback.full_analysis}</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 space-y-3">
-            <h2 className="font-semibold text-green-400">Strengths</h2>
-            <ul className="space-y-2">
-              {feedback.strengths.map((s, i) => (
-                <li key={i} className="text-sm text-gray-300 flex gap-2">
-                  <span className="text-green-500 mt-0.5 flex-shrink-0">•</span>{s}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 space-y-3">
-            <h2 className="font-semibold text-red-400">Weaknesses</h2>
-            <ul className="space-y-2">
-              {feedback.weaknesses.map((w, i) => (
-                <li key={i} className="text-sm text-gray-300 flex gap-2">
-                  <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>{w}
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <List title="What worked" dot="bg-good" items={feedback.strengths ?? []} />
+          <List title="What to work on" dot="bg-bad" items={feedback.weaknesses ?? []} />
         </div>
 
         {feedback.personality_insight && (
-          <div className="bg-indigo-950/40 rounded-2xl border border-indigo-800/50 p-6 space-y-2">
-            <h2 className="font-semibold text-indigo-300">Personality Insight</h2>
-            <p className="text-sm text-gray-300 leading-relaxed">{feedback.personality_insight}</p>
-          </div>
+          <Panel className="p-6 sm:p-8">
+            <h2 className="text-lg font-semibold">
+              Dealing with {session?.personality_type ? `an ${session.personality_type}` : "this personality"}
+            </h2>
+            <p className="mt-3 max-w-3xl text-[16px] leading-[1.75] text-ink-2">{feedback.personality_insight}</p>
+          </Panel>
         )}
 
         {feedback.key_moments?.length > 0 && (
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 space-y-4">
-            <h2 className="font-semibold text-white">Key Moments</h2>
-            <div className="space-y-4">
-              {feedback.key_moments.map((moment, i) => (
-                <div key={i} className="border-l-2 border-gray-700 pl-4 space-y-1">
-                  <p className="text-sm text-gray-400 italic">&ldquo;{moment.quote}&rdquo;</p>
-                  <p className="text-sm text-gray-300">{moment.impact}</p>
+          <Panel className="p-6 sm:p-8">
+            <h2 className="text-lg font-semibold">Key moments</h2>
+            <div className="mt-5 space-y-5">
+              {feedback.key_moments.map((m, i) => (
+                <div key={i} className="border-l-2 border-line-strong pl-5">
+                  <p className="text-[16px] italic leading-relaxed text-ink">&ldquo;{m.quote}&rdquo;</p>
+                  <p className="mt-1.5 text-[15px] leading-relaxed text-ink-2">{m.impact}</p>
                 </div>
               ))}
             </div>
-          </div>
+          </Panel>
         )}
 
         {feedback.better_responses?.length > 0 && (
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 space-y-4">
-            <h2 className="font-semibold text-white">Better Responses</h2>
-            <div className="space-y-5">
+          <Panel className="p-6 sm:p-8">
+            <h2 className="text-lg font-semibold">Better responses</h2>
+            <div className="mt-5 divide-y divide-line">
               {feedback.better_responses.map((item, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="bg-red-950/30 border border-red-900/40 rounded-xl p-3">
-                    <p className="text-xs text-red-400 font-medium mb-1 uppercase tracking-wide">You said</p>
-                    <p className="text-sm text-gray-300">{item.original}</p>
+                <div key={i} className="py-5 first:pt-0 last:pb-0">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <p className="text-sm font-medium text-ink-3">You said</p>
+                      <p className="mt-1.5 text-[15px] leading-relaxed text-ink-2">{item.original}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-good">Try instead</p>
+                      <p className="mt-1.5 text-[15px] leading-relaxed text-ink">{item.suggested}</p>
+                    </div>
                   </div>
-                  <div className="bg-green-950/30 border border-green-900/40 rounded-xl p-3">
-                    <p className="text-xs text-green-400 font-medium mb-1 uppercase tracking-wide">Try instead</p>
-                    <p className="text-sm text-gray-300">{item.suggested}</p>
-                  </div>
-                  <p className="text-xs text-gray-500 px-1">{item.reason}</p>
+                  <p className="mt-3 text-sm leading-relaxed text-ink-3">{item.reason}</p>
                 </div>
               ))}
             </div>
-          </div>
+          </Panel>
         )}
 
-        <div className="flex gap-4 pb-8">
-          <Link href="/scenarios" className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-center transition-colors">
-            Practice Again
+        <div className="flex flex-wrap gap-3 pt-4">
+          <Link href="/scenarios" className={btn.primary}>
+            Practice again
           </Link>
-          <Link href="/dashboard" className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl text-center transition-colors">
-            Dashboard
+          <Link href="/dashboard" className={btn.secondary}>
+            Back to dashboard
           </Link>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

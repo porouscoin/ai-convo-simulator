@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ConvoSim — AI Conversation Simulator",
+  title: "ConvoSim: AI Conversation Simulator",
   description:
-    "Practice difficult conversations with realistic AI personalities before they happen in real life.",
+    "Rehearse salary talks, interviews, sales calls and hard conversations with an AI that plays the other person, then get scored feedback.",
 };
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-950 text-gray-100`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-dvh bg-bg text-ink antialiased`}
       >
         {children}
       </body>

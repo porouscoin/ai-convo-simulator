@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { TopBar, NavLink, btn, field, label } from "@/components/ui";
 
 type AuthMode = "sign-in" | "sign-up" | "forgot-password";
 
@@ -96,135 +97,137 @@ export default function LoginPage() {
 
   const title = mode === "sign-up" ? "Create your account" : mode === "forgot-password" ? "Reset your password" : "Welcome back";
   const subtitle = mode === "sign-up"
-    ? "Create an account to start practicing conversations."
+    ? "It's free. You only need an email."
     : mode === "forgot-password"
-      ? "Enter your email and we will send a password reset link."
-      : "Sign in to start practicing conversations.";
+      ? "Enter your email and we'll send you a reset link."
+      : "Pick up where you left off.";
+
+  const tab = (m: AuthMode, text: string) => (
+    <button
+      type="button"
+      onClick={() => {
+        setMode(m);
+        setError(null);
+        setMessage(null);
+      }}
+      className={`h-10 rounded-md text-[15px] font-medium transition-colors ${
+        mode === m ? "bg-raised text-ink" : "text-ink-3 hover:text-ink"
+      }`}
+    >
+      {text}
+    </button>
+  );
+
+  const shownError =
+    error ?? (queryError === "auth_callback_failed" ? "Authentication failed. Try again." : queryError);
+  const shownMessage =
+    message ??
+    (queryMessage === "password_reset" ? "Password updated. Sign in with your new password." : queryMessage);
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-4 bg-gray-950">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-white">{title}</h1>
-          <p className="text-gray-400">{subtitle}</p>
-        </div>
+    <div className="min-h-dvh">
+      <TopBar>
+        <NavLink href="/">Home</NavLink>
+      </TopBar>
+      <main className="mx-auto w-full max-w-md px-5 py-14 sm:py-20">
+        <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
+        <p className="mt-2 text-[17px] text-ink-2">{subtitle}</p>
 
-        <div className="bg-gray-900 rounded-2xl p-8 border border-gray-800 space-y-6">
-          <div className="grid grid-cols-2 gap-2 rounded-xl bg-gray-800 p-1">
-            <button
-              type="button"
-              onClick={() => {
-                setMode("sign-in");
-                setError(null);
-                setMessage(null);
-              }}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                mode === "sign-in" ? "bg-indigo-600 text-white" : "text-gray-300 hover:text-white"
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode("sign-up");
-                setError(null);
-                setMessage(null);
-              }}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                mode === "sign-up" ? "bg-indigo-600 text-white" : "text-gray-300 hover:text-white"
-              }`}
-            >
-              Sign Up
-            </button>
-          </div>
+        <div className="mt-8 space-y-6">
+          {mode !== "forgot-password" && (
+            <div className="grid grid-cols-2 gap-1 rounded-lg border border-line bg-surface p-1">
+              {tab("sign-in", "Sign in")}
+              {tab("sign-up", "Create account")}
+            </div>
+          )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                Email address
+              <label htmlFor="email" className={label}>
+                Email
               </label>
               <input
                 id="email"
                 type="email"
                 required
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className={field}
               />
             </div>
 
             {mode !== "forgot-password" && (
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                  Password
-                </label>
+                <div className="flex items-baseline justify-between">
+                  <label htmlFor="password" className={label}>
+                    Password
+                  </label>
+                  {mode === "sign-in" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode("forgot-password");
+                        setError(null);
+                        setMessage(null);
+                      }}
+                      className="text-sm text-ink-3 hover:text-ink"
+                    >
+                      Forgot it?
+                    </button>
+                  )}
+                </div>
                 <input
                   id="password"
                   type="password"
                   required
+                  autoComplete={mode === "sign-up" ? "new-password" : "current-password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder={mode === "sign-up" ? "At least 6 characters" : "Your password"}
+                  className={field}
                 />
               </div>
             )}
 
             {mode === "sign-up" && (
               <div>
-                <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="confirm-password" className={label}>
                   Confirm password
                 </label>
                 <input
                   id="confirm-password"
                   type="password"
                   required
+                  autoComplete="new-password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Re-enter your password"
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="Type it again"
+                  className={field}
                 />
               </div>
             )}
 
-            {(queryError || error) && (
-              <p className="text-red-400 text-sm">{error ?? (queryError === "auth_callback_failed" ? "Authentication failed. Try again." : queryError)}</p>
+            {shownError && (
+              <p className="rounded-lg border border-bad/40 px-4 py-3 text-[15px] text-bad">{shownError}</p>
+            )}
+            {shownMessage && (
+              <p className="rounded-lg border border-good/40 px-4 py-3 text-[15px] text-good">{shownMessage}</p>
             )}
 
-            {(queryMessage || message) && (
-              <p className="text-green-400 text-sm">{message ?? (queryMessage === "password_reset" ? "Password updated. Sign in with your new password." : queryMessage)}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-colors"
-            >
+            <button type="submit" disabled={loading} className={`${btn.primary} w-full`}>
               {loading
                 ? "Working..."
                 : mode === "sign-up"
-                  ? "Create Account"
+                  ? "Create account"
                   : mode === "forgot-password"
-                    ? "Send Reset Link"
-                    : "Sign In"}
+                    ? "Send reset link"
+                    : "Sign in"}
             </button>
           </form>
 
-          {mode !== "forgot-password" ? (
-            <button
-              type="button"
-              onClick={() => {
-                setMode("forgot-password");
-                setError(null);
-                setMessage(null);
-              }}
-              className="text-sm text-gray-400 hover:text-white transition-colors"
-            >
-              Forgot your password?
-            </button>
-          ) : (
+          {mode === "forgot-password" && (
             <button
               type="button"
               onClick={() => {
@@ -232,17 +235,18 @@ export default function LoginPage() {
                 setError(null);
                 setMessage(null);
               }}
-              className="text-sm text-gray-400 hover:text-white transition-colors"
+              className="text-[15px] text-ink-2 hover:text-ink"
             >
               Back to sign in
             </button>
           )}
 
-          <div className="rounded-xl border border-gray-800 bg-gray-950/60 p-4 text-sm text-gray-400">
-            If you previously used a magic-link account, use "Forgot your password?" with the same email once. Your existing sessions and feedback stay attached to that account.
-          </div>
+          <p className="border-t border-line pt-6 text-sm leading-relaxed text-ink-3">
+            Used a magic link before? Choose &ldquo;Forgot it?&rdquo; once with the same email to set a
+            password. Your past sessions and feedback stay on that account.
+          </p>
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { TopBar, NavLink, btn, field, label } from "@/components/ui";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -68,63 +69,60 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-4 bg-gray-950">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-white">Set a new password</h1>
-          <p className="text-gray-400">Use the password reset link from your email, then set a permanent password here.</p>
-        </div>
+    <div className="min-h-dvh">
+      <TopBar>
+        <NavLink href="/login">Sign in</NavLink>
+      </TopBar>
+      <main className="mx-auto w-full max-w-md px-5 py-14 sm:py-20">
+        <h1 className="text-3xl font-semibold tracking-tight">Set a new password</h1>
+        <p className="mt-2 text-[17px] text-ink-2">Choose the password you&apos;ll sign in with from now on.</p>
 
-        <div className="bg-gray-900 rounded-2xl p-8 border border-gray-800 space-y-6">
-          {!ready && (
-            <div className="rounded-xl border border-yellow-900/40 bg-yellow-950/20 p-4 text-sm text-yellow-200">
-              Open this page from your Supabase password reset email. If you came here directly, request a new reset link from the login page.
-            </div>
-          )}
+        {!ready && (
+          <p className="mt-8 rounded-lg border border-warn/40 px-4 py-3 text-[15px] text-warn">
+            Open this page from the reset link in your email. If you came here directly, request a new link
+            from the sign-in page.
+          </p>
+        )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                New password
-              </label>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your new password"
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          <div>
+            <label htmlFor="password" className={label}>
+              New password
+            </label>
+            <input
+              id="password"
+              type="password"
+              required
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="At least 6 characters"
+              className={field}
+            />
+          </div>
+          <div>
+            <label htmlFor="confirm-password" className={label}>
+              Confirm password
+            </label>
+            <input
+              id="confirm-password"
+              type="password"
+              required
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Type it again"
+              className={field}
+            />
+          </div>
 
-            <div>
-              <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-300 mb-2">
-                Confirm password
-              </label>
-              <input
-                id="confirm-password"
-                type="password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Re-enter your new password"
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              />
-            </div>
+          {error && <p className="rounded-lg border border-bad/40 px-4 py-3 text-[15px] text-bad">{error}</p>}
 
-            {error && <p className="text-red-400 text-sm">{error}</p>}
-
-            <button
-              type="submit"
-              disabled={loading || !ready}
-              className="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-colors"
-            >
-              {loading ? "Saving..." : "Save New Password"}
-            </button>
-          </form>
-        </div>
-      </div>
-    </main>
+          <button type="submit" disabled={loading || !ready} className={`${btn.primary} w-full`}>
+            {loading ? "Saving..." : "Save new password"}
+          </button>
+        </form>
+      </main>
+    </div>
   );
 }
